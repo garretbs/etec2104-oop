@@ -10,13 +10,13 @@ public class SpinButtonTest {
     @Test
     public void shouldDisableWhenSpin(){
         SpinButton sbTest = new SpinButton("");
-        sbTest.notify(new StateEvent(GameState.SPIN));
+        sbTest.notify(new StateEvent(GameState.PRESPIN, GameState.SPIN));
         assertFalse(sbTest.isEnabled());
     }
     @Test
     public void shouldEnableWhenReady(){
         SpinButton sbTest = new SpinButton("");
-        sbTest.notify(new StateEvent(GameState.READY));
+        sbTest.notify(new StateEvent(GameState.PRESPIN, GameState.READY));
         assertTrue(sbTest.isEnabled());
     }
 }

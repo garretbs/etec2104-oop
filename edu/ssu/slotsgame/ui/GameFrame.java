@@ -6,31 +6,31 @@ import javax.swing.*;
 
 import edu.ssu.slotsgame.logic.BetManager;
 import edu.ssu.slotsgame.logic.BetMediator;
+import edu.ssu.slotsgame.logic.CreditManager;
 import edu.ssu.slotsgame.logic.GameState;
 import edu.ssu.slotsgame.logic.GameStateManager;
 
 public class GameFrame extends JFrame implements ActionListener{
-    int currentCredits;
 
     JLabel creditLabel;
-    public static BetLabel betLabel;
+    BetLabel betLabel;
     JLabel wonLabel;
 
-    JButton helpButton;
-    public static BetButton betUpButton;
-    public static BetButton betDownButton;
-    public static SpinButton spinButton;
+    BetButton maxBetButton;
+    BetButton betUpButton;
+    BetButton betDownButton;
+    SpinButton spinButton;
 
-    ReelLabel[] reels;
-    public static ReelPanel reelPanel;
+    ReelPanel reelPanel;
     
-    final static BetMediator mediator = new BetMediator();
+    BetMediator mediator;
 
     public GameFrame(){
         super("SSU Slots");
+        
+        mediator = new BetMediator();
 
-        currentCredits = 100;
-        creditLabel = new JLabel("Credits: " + currentCredits);
+        creditLabel = new JLabel("Credits: " + CreditManager.getInstance().getCurrentCredits());
 
         betLabel = new BetLabel();
 
@@ -47,19 +47,13 @@ public class GameFrame extends JFrame implements ActionListener{
         reelPanel = new ReelPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(0, 50, 0, 50);
-
-        reels = new ReelLabel[5];
-        for(int i=0;i<reels.length;i++){
-            reels[i] = new ReelLabel("A");
-            reelPanel.add(reels[i], gbc);
-        }
-
+        
         this.add(reelPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new BorderLayout());
         
-        helpButton = new JButton("HELP");
-        helpButton.addActionListener(this);
+        maxBetButton = new BetButton("MAX BET");
+        maxBetButton.addActionListener(this);
         
         spinButton = new SpinButton("SPIN");
         spinButton.addActionListener(this);
@@ -78,7 +72,7 @@ public class GameFrame extends JFrame implements ActionListener{
         betButtonPanel.add(betUpButton);
         betButtonPanel.add(betDownButton);
 
-        buttonPanel.add(helpButton, BorderLayout.WEST);
+        buttonPanel.add(maxBetButton, BorderLayout.WEST);
         buttonPanel.add(spinButton, BorderLayout.CENTER);
         buttonPanel.add(betButtonPanel, BorderLayout.EAST);
 
@@ -92,25 +86,33 @@ public class GameFrame extends JFrame implements ActionListener{
     public void actionPerformed(ActionEvent e){
         switch (e.getActionCommand()) {
             case "BET UP":
-                BetManager.getInstance().increaseBet();
-                mediator.setBetLabel(betLabel);
-                mediator.notifyOfBet();
-                break;
+               BetManager.getInstance().increaseBet();
+               mediator.setBetLabel(betLabel);
+               mediator.notifyOfBet();
+               break;
             case "BET DOWN":
-                BetManager.getInstance().decreaseBet();
+               BetManager.getInstance().decreaseBet();
+               mediator.setBetLabel(betLabel);
+               mediator.notifyOfBet();
+               break;
+            case "MAX BET":
+                BetManager.getInstance().setMaxBet();
                 mediator.setBetLabel(betLabel);
                 mediator.notifyOfBet();
                 break;
             case "SPIN":
-                GameStateManager.getInstance().setCurrentState(GameState.SPIN);
-                reelPanel.removeAll();
-                reels = reelPanel.reels_;
-                GridBagConstraints gbc = new GridBagConstraints();
-                gbc.insets = new Insets(0, 50, 0, 50);
-                for(ReelLabel reel : reels)reelPanel.add(reel, gbc);
-                reelPanel.repaint();
-                this.setVisible(true);
-                GameStateManager.getInstance().setCurrentState(GameState.READY);
+                if(GameStateManager.getInstance().getCurrentState() != GameState.READY) return;
+                GameStateManager.getInstance().setCurrentState(GameState.PRESPIN);
+                
+                if(BetManager.getInstance().getCurrentBet() <= CreditManager.getInstance().getCurrentCredits()){
+                    CreditManager.getInstance().subCredits(BetManager.getInstance().getCurrentBet());
+                    creditLabel.setText("Credits: " + CreditManager.getInstance().getCurrentCredits());
+                    CreditManager.getInstance().setCreditLabel(creditLabel);
+                    CreditManager.getInstance().setWinLabel(wonLabel);
+                    GameStateManager.getInstance().setCurrentState(GameState.SPIN);
+                }else{
+                    GameStateManager.getInstance().setCurrentState(GameState.READY);
+                }
                 break;
         }
     }

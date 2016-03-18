@@ -1,14 +1,16 @@
 package edu.ssu.slotsgame.logic;
 
 import edu.ssu.slotsgame.logic.Subject;
-import edu.ssu.slotsgame.ui.GameFrame;
 
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Vector;
 
 public class EventManager implements Subject{
     private final static EventManager instance_ = new EventManager();
+
     private HashMap<Integer, ArrayList<Observer>> observerMap_;
+    private Vector<GameEvent> events_;
 
     public static EventManager getInstance(){
         return instance_;
@@ -16,6 +18,7 @@ public class EventManager implements Subject{
 
     private EventManager(){
         observerMap_ = new HashMap<Integer, ArrayList<Observer>>();
+        events_ = new Vector<>();
     }
 
     public void attach(Observer o, int gameEventType){
@@ -23,7 +26,6 @@ public class EventManager implements Subject{
         if(!observerMap_.containsKey(type)){
             observerMap_.put(type, new ArrayList<Observer>());
         }
-
         observerMap_.get(type).add(o);
     }
 
@@ -34,19 +36,25 @@ public class EventManager implements Subject{
         }
     }
 
+
     public void notify(GameEvent e){
-        Integer type = new Integer(e.getType());
-        if(observerMap_.containsKey(type)){
-            ArrayList<Observer> observerList = observerMap_.get(type);
-            for(int i=0;i<observerList.size();i++){
-                observerList.get(i).notify(e);
-            }
+        if(events_.size() != 0){
+            events_.add(e);
+            return;
         }
-        if(GameFrame.spinButton == null) return;
-        GameFrame.spinButton.notify(e);
-        GameFrame.reelPanel.notify(e);
-        GameFrame.betUpButton.notify(e);
-        GameFrame.betDownButton.notify(e);
-        GameFrame.betLabel.notify(e);
+        events_.add(e);
+
+        while (events_.size() != 0){
+            e = events_.get(0);
+
+            Integer type = new Integer(e.getType());
+            if(observerMap_.containsKey(type)){
+                ArrayList<Observer> observerList = observerMap_.get(type);
+                for(int i = 0; i < observerList.size(); ++i){
+                    observerList.get(i).notify(e);
+                }
+            }
+            events_.remove(0);
+        }
     }
 }

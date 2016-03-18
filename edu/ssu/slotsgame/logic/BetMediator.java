@@ -29,7 +29,7 @@ public class BetMediator{
         int currentBet = BetManager.getInstance().getCurrentBet();
         betLabel.setText("Bet: " + currentBet);
 
-        if(currentBet >= GameParameters.MAX_BET){
+        if(currentBet >= GameParameters.MAX_BET || currentBet >= CreditManager.getInstance().getCurrentCredits()){
             this.betUp.setEnabled(false);
         }else if(currentBet <= GameParameters.MIN_BET){
             this.betDown.setEnabled(false);

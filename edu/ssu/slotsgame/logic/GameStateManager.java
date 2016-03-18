@@ -1,24 +1,27 @@
-
 package edu.ssu.slotsgame.logic;
 
-public class GameStateManager {
+
+public class GameStateManager{
     private final static GameStateManager instance_ = new GameStateManager();
-    private static int currentState_ = GameState.READY;
-    
-    private GameStateManager(){
-    }
-    
-    public static int getCurrentState(){
-        return currentState_;
-    }
-    
-    public static void setCurrentState(int state){
-        currentState_ = state;
-        EventManager.getInstance().notify(new StateEvent(state));
-    }
-    
+
+    private int currentState_;
+
     public static GameStateManager getInstance(){
         return instance_;
     }
-    
+
+    private GameStateManager(){
+        currentState_ = GameState.READY;
+    }
+
+    public int getCurrentState(){
+        return currentState_;
+    }
+
+    public void setCurrentState(int state){
+        StateEvent stateEvent = new StateEvent(currentState_, state);
+        currentState_ = state;
+        EventManager.getInstance().notify(stateEvent);
+        if(currentState_ == GameState.POSTSPIN) CreditManager.getInstance().evaluate();
+    }
 }

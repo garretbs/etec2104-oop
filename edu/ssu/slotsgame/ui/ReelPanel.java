@@ -1,34 +1,32 @@
-
 package edu.ssu.slotsgame.ui;
 
-import edu.ssu.slotsgame.logic.GameEvent;
-import edu.ssu.slotsgame.logic.GameState;
-import edu.ssu.slotsgame.logic.Observer;
-import java.awt.GridBagLayout;
-import java.util.Random;
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
 
-public class ReelPanel extends JPanel implements Observer{
-    ReelLabel[] reels_;
+import edu.ssu.slotsgame.logic.ReelController;
+
+public class ReelPanel extends JPanel{
+
+    public ReelController reelController_;
+    private static ReelPanel instance_;
+
+    public ReelPanel(LayoutManager layout){
+        super(layout);
+        instance_ = this;
+        reelController_ = new ReelController();
+    }
     
-    public void spin(){
-        reels_ = new ReelLabel[5];
-        Random randomizer = new Random();
-        int randomInt;
-        String reelLetter;
-        
-        for(int i=0;i<reels_.length;i++){
-            randomInt = randomizer.nextInt(25) + 65;
-            reelLetter = Character.toString((char) randomInt);
-            reels_[i] = new ReelLabel(reelLetter);
+    public static ReelPanel getInstance(){
+        return instance_;
+    }
+
+    public void paint(Graphics g){
+        g.setClip(reelController_.reelX, reelController_.reelY,
+                reelController_.reelStrips_[0].symbolWidth * 3,
+                reelController_.reelStrips_[0].symbolHeight * 3);
+
+        for(int i=0;i<3;i++){
+            reelController_.reelStrips_[i].paint(reelController_.reelX, reelController_.reelY, g);
         }
-    }
-    
-    public ReelPanel(GridBagLayout gbl){
-        super(gbl);
-    }
-
-    public void notify(GameEvent e) {
-        if(e.getType() == GameState.SPIN) spin();
     }
 }
